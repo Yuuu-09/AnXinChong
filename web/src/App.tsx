@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, useEffect, useRef, useState, type ErrorInfo, type ReactNode } from 'react';
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi';
 import {
@@ -10,9 +10,11 @@ import {
   Store,
   Wallet,
   UserRound,
+  Presentation,
 } from 'lucide-react';
 import { configured, manifest } from './lib/runtime';
-import { Notice } from './components';
+import { Modal, Notice } from './components';
+import onePagerUrl from '../../one-pager.html?url';
 import {
   Market,
   MerchantPage,
@@ -77,6 +79,21 @@ function WalletButton() {
 }
 export default function App() {
   const location = useLocation();
+  const [onePagerOpen, setOnePagerOpen] = useState(false);
+  const onePagerFrame = useRef<HTMLIFrameElement>(null);
+  useEffect(() => {
+    if (!onePagerOpen) return;
+    const closeFromFrame = (event: MessageEvent) => {
+      if (
+        event.source === onePagerFrame.current?.contentWindow &&
+        event.data?.type === 'anxinchong:close-one-pager'
+      ) {
+        setOnePagerOpen(false);
+      }
+    };
+    window.addEventListener('message', closeFromFrame);
+    return () => window.removeEventListener('message', closeFromFrame);
+  }, [onePagerOpen]);
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -113,6 +130,16 @@ export default function App() {
               消费与退出规则链上执行
             </p>
           </div>
+          <button
+            type="button"
+            className="one-pager-button"
+            aria-haspopup="dialog"
+            title="演示一页纸"
+            onClick={() => setOnePagerOpen(true)}
+          >
+            <Presentation size={18} />
+            <span>演示一页纸</span>
+          </button>
           <div className="built-on">
             <span className="monad-glyph">◈</span> Built on Monad
           </div>
@@ -196,6 +223,20 @@ export default function App() {
           </footer>
         </main>
       </div>
+      <Modal
+        title="演示一页纸"
+        open={onePagerOpen}
+        onClose={() => setOnePagerOpen(false)}
+        className="one-pager-modal"
+      >
+        <iframe
+          ref={onePagerFrame}
+          className="one-pager-frame"
+          src={onePagerUrl}
+          title="安心充演示一页纸"
+          sandbox="allow-scripts"
+        />
+      </Modal>
     </div>
   );
 }

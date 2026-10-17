@@ -201,6 +201,24 @@ nav a.active:after {
   color: #909991;
   letter-spacing: 0.4px;
 }
+.one-pager-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  margin: 16px 0;
+  padding: 11px 12px;
+  border: 1px solid #dce8df;
+  border-radius: 9px;
+  background: var(--mint);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 600;
+}
+.one-pager-button:hover {
+  background: #deeee2;
+}
 .monad-glyph {
   color: #8365d0;
   font-size: 20px;
@@ -595,6 +613,31 @@ main {
 }
 .modal .wrap {
   overflow-wrap: anywhere;
+}
+.modal.one-pager-modal {
+  width: min(1200px, calc(100vw - 40px));
+  height: calc(100dvh - 48px);
+  overflow: hidden;
+}
+.one-pager-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+}
+.one-pager-modal .modal-heading {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.one-pager-frame {
+  display: block;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: #e6eae3;
 }
 .plan-list-heading h2 {
   margin: 0;
@@ -1334,9 +1377,20 @@ footer span {
   }
   .brand > span:last-child,
   .nav-label,
-  .sidebar-bottom,
+  .sidebar-bottom .side-note,
+  .sidebar-bottom .built-on,
   .sidebar nav a:after {
     display: none;
+  }
+  .sidebar-bottom {
+    padding-top: 24px;
+  }
+  .one-pager-button {
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 10px 0;
+    font-size: 9px;
   }
   nav a {
     padding: 13px;
@@ -1469,6 +1523,16 @@ footer span {
   }
   .modal-content {
     padding: 20px;
+  }
+  .modal.one-pager-modal {
+    width: calc(100vw - 16px);
+    height: calc(100dvh - 24px);
+  }
+  .one-pager-modal .modal-content {
+    padding: 0;
+  }
+  .one-pager-modal .modal-heading {
+    padding: 10px 14px;
   }
   .wallet-control {
     max-width: calc(100% - 95px);

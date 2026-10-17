@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="description"
+      content="安心充：构建在 Monad 上的稳定币预付消费与会员优惠协议。合约托管、双签结算、按约退出，连接开放的消费网络。"
+    />
+    <title>安心充｜项目演示一页纸</title>
+    <style>
+      :root {
+        --ink: #193d32;
+        --green: #235b48;
+        --mint: #c6f2c6;
+        --paper: #fafaf5;
+        --muted: #69796e;
+        --line: #dce4d9;
+        --soft: #eef2e9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #e6eae3;
+        color: var(--ink);
+        font:
+          14px/1.65 -apple-system,
+          BlinkMacSystemFont,
+          'PingFang SC',
+          'Microsoft YaHei',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+      }
+      button:focus-visible,
+      a:focus-visible {
+        outline: 3px solid #359c66;
+        outline-offset: 4px;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-underline-offset: 4px;
+      }
+      .toolbar {
+        max-width: 1120px;
+        padding: 20px 0 14px;
+        margin: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: 12px;
+        color: #54665a;
+      }
+      .sheet {
+        width: calc(100% - 64px);
+        max-width: 1120px;
+        margin: 0 auto 40px;
+        padding: 36px 44px 25px;
+        background: var(--paper);
+        box-shadow: 0 12px 60px #213a2914;
+      }
+      .masthead {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .brandmark {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 11px;
+        background: var(--ink);
+        color: var(--mint);
+      }
+      .brand strong {
+        font-size: 23px;
+        letter-spacing: 2px;
+      }
+      .brand span {
+        font-size: 10px;
+        letter-spacing: 2px;
+        display: block;
+        margin-top: -4px;
+        color: var(--muted);
+      }
+      .network {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        letter-spacing: 1.3px;
+      }
+      .network i {
+        width: 7px;
+        height: 7px;
+        background: #5d9b69;
+        border-radius: 50%;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        align-items: center;
+        gap: 34px;
+        padding: 30px 0 26px;
+      }
+      .eyebrow {
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 2px;
+        font-weight: 650;
+      }
+      h1 {
+        font-size: 49px;
+        line-height: 1.22;
+        letter-spacing: -2.6px;
+        margin: 11px 0 15px;
+        font-weight: 750;
+      }
+      h1 em {
+        font-style: normal;
+        color: #41835a;
+      }
+      .hero-copy {
+        max-width: 470px;
+        font-size: 14px;
+        line-height: 1.9;
+        color: #566b5e;
+      }
+      .hero-copy strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .tags {
+        display: flex;
+        gap: 8px;
+        margin-top: 17px;
+        flex-wrap: wrap;
+      }
+      .tag {
+        padding: 3px 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font-size: 10px;
+        color: #536b59;
+      }
+      .vault {
+        position: relative;
+        background: var(--ink);
+        color: #f1f8ef;
+        border-radius: 20px;
+        padding: 23px 24px 21px;
+        overflow: hidden;
+      }
+      .vault:after {
+        content: '';
+        width: 200px;
+        height: 200px;
+        border: 1px solid #c6f2c61a;
+        border-radius: 50%;
+        position: absolute;
+        right: -100px;
+        top: -50px;
+        pointer-events: none;
+      }
+      .vault-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #b5d0bd;
+        font-size: 10px;
+        letter-spacing: 1.2px;
+      }
+      .vault-icon {
+        width: 62px;
+        height: 62px;
+        margin: 18px auto 13px;
+        display: block;
+        color: var(--mint);
+      }
+      .vault-title {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .vault-sub {
+        text-align: center;
+        font-size: 11px;
+        color: #b5d0bd;
+        margin-top: 3px;
+      }
+      .vault-bottom {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+        margin-top: 18px;
+        padding-top: 15px;
+        border-top: 1px solid #ffffff25;
+        font-size: 12px;
+      }
+      .vault-bottom small {
+        display: block;
+        font-size: 10px;
+        color: #b5d0bd;
+      }
+      .vault-bottom .arrow {
+        color: #c6f2c6;
+        font-size: 20px;
+      }
+      .thesis {
+        display: grid;
+        grid-template-columns: 105px 1fr;
+        gap: 20px;
+        align-items: center;
+        background: var(--soft);
+        padding: 17px 21px;
+        border-left: 3px solid #76aa77;
+      }
+      .thesis strong {
+        font-size: 12px;
+      }
+      .thesis p {
+        font-size: 12px;
+        line-height: 1.8;
+        color: #526959;
+      }
+      .thesis b {
+        color: var(--ink);
+        font-weight: 650;
+      }
+      .section {
+        padding-top: 25px;
+      }
+      .section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 15px;
+      }
+      h2 {
+        font-size: 18px;
+        line-height: 1.45;
+        letter-spacing: -0.4px;
+      }
+      .number {
+        font-size: 10px;
+        font-family: ui-monospace, SFMono-Regular, monospace;
+        color: #7a8d7c;
+        margin-right: 10px;
+        font-weight: 500;
+        letter-spacing: 1px;
+      }
+      .section-heading > p {
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .step {
+        padding: 17px 18px 16px;
+        position: relative;
+      }
+      .step + .step {
+        border-left: 1px solid var(--line);
+      }
+      .step + .step:before {
+        content: '→';
+        position: absolute;
+        left: -9px;
+        top: 21px;
+        width: 17px;
+        text-align: center;
+        background: var(--paper);
+        color: #8fa38e;
+        font-size: 13px;
+      }
+      .step-label {
+        color: #83a086;
+        font:
+          10px ui-monospace,
+          SFMono-Regular,
+          monospace;
+        margin-bottom: 8px;
+      }
+      h3 {
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .step p {
+        font-size: 11px;
+        line-height: 1.8;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+      .lower {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 26px;
+      }
+      .example {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 19px 20px;
+      }
+      .example-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .example-head strong {
+        font-size: 13px;
+      }
+      .example-head span {
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 4px;
+        background: #eaf0e5;
+        border-radius: 8px;
+        margin-top: 13px;
+        gap: 4px;
+      }
+      .tabs button {
+        border: 0;
+        border-radius: 5px;
+        background: transparent;
+        color: #687f6d;
+        padding: 6px 3px;
+        font-size: 11px;
+      }
+      .tabs button[aria-pressed='true'] {
+        background: var(--ink);
+        color: #fff;
+        box-shadow: 0 2px 6px #12372012;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 17px;
+      }
+      .metric small {
+        display: block;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .metric strong {
+        display: block;
+        font-size: 29px;
+        letter-spacing: -1px;
+        line-height: 1.4;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+      }
+      .metric:last-child strong {
+        color: #3b8353;
+      }
+      .balance-bar {
+        margin: 13px 0 11px;
+        display: flex;
+        height: 7px;
+        border-radius: 8px;
+        background: #e7ede3;
+        overflow: hidden;
+      }
+      .balance-bar span {
+        display: block;
+        transition: width 0.35s;
+      }
+      .balance-bar .released {
+        background: #355e48;
+      }
+      .balance-bar .refunded {
+        background: #9ed1a2;
+      }
+      .example-note {
+        min-height: 43px;
+        font-size: 11px;
+        line-height: 1.8;
+        color: #647768;
+      }
+      .example-note b {
+        color: #2d6847;
+        font-weight: 650;
+      }
+      .print-note {
+        display: none;
+      }
+      .future {
+        border-radius: 12px;
+        padding: 18px 20px;
+        background: #edf3e9;
+        border: 1px solid #dce8d7;
+      }
+      .future-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .future-head strong {
+        font-size: 13px;
+      }
+      .future-head span {
+        font-size: 9px;
+        letter-spacing: 1px;
+        border: 1px solid #c7d6c2;
+        padding: 2px 7px;
+        border-radius: 999px;
+      }
+      .relationship {
+        display: grid;
+        grid-template-columns: 1fr 32px 1fr;
+        align-items: center;
+        gap: 5px;
+        margin: 14px 0 12px;
+      }
+      .node {
+        padding: 10px 5px;
+        background: #fafcf7;
+        border: 1px solid #d9e4d3;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .node small {
+        display: block;
+        font-size: 9px;
+        color: #7d907e;
+        font-weight: 400;
+        margin-top: 3px;
+      }
+      .connection {
+        text-align: center;
+        color: #65936b;
+        font-size: 21px;
+      }
+      .future > p {
+        color: #5c755f;
+        font-size: 11px;
+        line-height: 1.85;
+      }
+      .future > p b {
+        color: #234c36;
+        font-weight: 650;
+      }
+      .future-bottom {
+        border-top: 1px solid #d6e1cf;
+        padding-top: 10px;
+        margin-top: 12px;
+        font-size: 10px;
+        color: #637d64;
+      }
+      .implementation {
+        margin-top: 24px;
+        padding-top: 17px;
+        border-top: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 20px;
+      }
+      .implementation-title {
+        font-size: 12px;
+        font-weight: 650;
+      }
+      .status {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        color: #5f7564;
+        font-size: 10px;
+        line-height: 1.8;
+      }
+      .status + .status {
+        margin-top: 3px;
+      }
+      .status-dot {
+        width: 5px;
+        height: 5px;
+        flex-shrink: 0;
+        margin-top: 7px;
+        border-radius: 50%;
+        background: #4d9260;
+      }
+      .status-dot.pending {
+        background: #a4ad9a;
+      }
+      @media (min-width: 1184px) {
+        .toolbar {
+          width: calc(100% - 64px);
+        }
+      }
+      @media (max-width: 1183px) {
+        .toolbar {
+          margin: 0 32px;
+        }
+      }
+      @media (max-width: 760px) {
+        .sheet {
+          width: calc(100% - 24px);
+          padding: 25px 22px;
+          margin-bottom: 18px;
+        }
+        .toolbar {
+          margin: 0 16px;
+          padding-top: 13px;
+        }
+        .toolbar span {
+          font-size: 10px;
+        }
+        .masthead {
+          padding-bottom: 19px;
+        }
+        .brand strong {
+          font-size: 21px;
+        }
+        .network {
+          font-size: 9px;
+          letter-spacing: 0.6px;
+        }
+        .hero {
+          grid-template-columns: 1fr;
+          gap: 22px;
+          padding: 24px 0;
+        }
+        h1 {
+          font-size: 43px;
+        }
+        .hero-copy {
+          max-width: none;
+        }
+        .vault {
+          max-width: none;
+        }
+        .vault-icon {
+          margin-top: 13px;
+          margin-bottom: 8px;
+        }
+        .thesis {
+          grid-template-columns: 1fr;
+          gap: 5px;
+          padding: 15px 17px;
+        }
+        .steps {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .step {
+          padding: 15px;
+        }
+        .step:nth-child(3) {
+          border-left: 0;
+        }
+        .step:nth-child(n + 3) {
+          border-top: 1px solid var(--line);
+        }
+        .step:nth-child(3):before {
+          display: none;
+        }
+        .lower {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .section-heading {
+          align-items: baseline;
+        }
+        .section-heading > p {
+          display: none;
+        }
+        .implementation {
+          grid-template-columns: 1fr;
+          gap: 9px;
+        }
+        .metric strong {
+          font-size: 29px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      @media print {
+        * {
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
+        body {
+          background: #fff;
+          font-size: 11px;
+        }
+        .toolbar {
+          display: none;
+        }
+        .sheet {
+          width: 190mm;
+          max-width: none;
+          margin: 0;
+          padding: 0;
+          box-shadow: none;
+        }
+        .masthead {
+          padding-bottom: 14px;
+        }
+        .brand strong {
+          font-size: 20px;
+        }
+        .brandmark {
+          width: 30px;
+          height: 30px;
+        }
+        .hero {
+          grid-template-columns: 1.2fr 1fr;
+          padding: 20px 0 18px;
+          gap: 23px;
+        }
+        h1 {
+          font-size: 40px;
+          margin: 8px 0 10px;
+        }
+        .hero-copy {
+          font-size: 12px;
+        }
+        .tags {
+          margin-top: 12px;
+          gap: 5px;
+        }
+        .tag {
+          font-size: 9px;
+          padding: 2px 7px;
+        }
+        .vault {
+          border-radius: 13px;
+          padding: 15px 17px;
+        }
+        .vault-icon {
+          width: 45px;
+          height: 45px;
+          margin: 12px auto 8px;
+        }
+        .vault-title {
+          font-size: 16px;
+        }
+        .vault-sub {
+          font-size: 10px;
+        }
+        .vault-bottom {
+          margin-top: 12px;
+          padding-top: 10px;
+          font-size: 11px;
+        }
+        .vault-bottom small,
+        .vault-top {
+          font-size: 9px;
+        }
+        .thesis {
+          grid-template-columns: 80px 1fr;
+          padding: 12px 15px;
+          gap: 13px;
+        }
+        .thesis strong {
+          font-size: 11px;
+        }
+        .thesis p {
+          font-size: 10px;
+        }
+        .section {
+          padding-top: 18px;
+        }
+        .section-heading {
+          margin-bottom: 11px;
+        }
+        h2 {
+          font-size: 16px;
+        }
+        .section-heading > p {
+          font-size: 9px;
+          display: block;
+        }
+        .steps {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .step {
+          padding: 12px;
+        }
+        .step:nth-child(3) {
+          border-left: 1px solid var(--line);
+        }
+        .step:nth-child(n + 3) {
+          border-top: 0;
+        }
+        .step-label {
+          font-size: 9px;
+          margin-bottom: 5px;
+        }
+        .step h3 {
+          font-size: 12px;
+        }
+        .step p {
+          font-size: 9px;
+        }
+        .step + .step:before {
+          display: block;
+          top: 15px;
+        }
+        .lower {
+          grid-template-columns: 1fr 1fr;
+          gap: 18px;
+        }
+        .example,
+        .future {
+          padding: 13px 14px;
+        }
+        .example-head strong,
+        .future-head strong {
+          font-size: 11px;
+        }
+        .example-head span,
+        .future-head span {
+          font-size: 9px;
+        }
+        .tabs {
+          display: none;
+        }
+        .metrics {
+          margin-top: 13px;
+        }
+        .metric small {
+          font-size: 9px;
+        }
+        .metric strong {
+          font-size: 27px;
+        }
+        .example-note {
+          font-size: 10px;
+          min-height: 0;
+        }
+        .print-note {
+          display: block;
+          font-size: 9px;
+          color: var(--muted);
+          padding-top: 8px;
+          margin-top: 8px;
+          border-top: 1px solid var(--line);
+        }
+        .relationship {
+          margin: 11px 0 10px;
+          grid-template-columns: 1fr 22px 1fr;
+        }
+        .node {
+          font-size: 11px;
+          padding: 8px 3px;
+        }
+        .node small {
+          font-size: 9px;
+        }
+        .future > p {
+          font-size: 10px;
+        }
+        .future-bottom {
+          font-size: 9px;
+          padding-top: 8px;
+          margin-top: 9px;
+        }
+        .implementation {
+          margin-top: 18px;
+          padding-top: 13px;
+          grid-template-columns: 88px 1fr;
+          gap: 13px;
+        }
+        .implementation-title {
+          font-size: 11px;
+        }
+        .status {
+          font-size: 9px;
+        }
+        .status-dot {
+          margin-top: 5px;
+        }
+        section,
+        article,
+        .implementation,
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar" aria-label="演示工具">
+      <span>安心充 · 项目演示一页纸</span>
+    </div>
+    <main class="sheet">
+      <header class="masthead">
+        <div class="brand">
+          <div class="brandmark" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 3 20 6.5v6c0 4-4 6.9-8 8.5-4-1.6-8-4.5-8-8.5v-6L12 3Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="m8 11.5 2.6 2.6 5.4-5.4"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div><strong>安心充</strong><span>PREPAY WITH CONFIDENCE</span></div>
+        </div>
+        <div class="network"><i aria-hidden="true"></i>BUILT ON MONAD</div>
+      </header>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <p class="eyebrow">稳定币预付消费与会员优惠协议</p>
+          <h1 id="hero-title">预付有约，<br /><em>消费安心。</em></h1>
+          <p class="hero-copy">
+            破解商户储值的信任难题。把预付款存入<strong>智能合约金库</strong>，随双方确认的消费结算。让优惠有依据、退出有规则，让每一次充值都建立在可验证的约定上。
+          </p>
+          <div class="tags">
+            <span class="tag">USDC 结算</span><span class="tag">储值卡 / 次数卡</span
+            ><span class="tag">每商家独立金库</span>
+          </div>
+        </div>
+        <div
+          class="vault"
+          aria-label="资金机制：消费者预付至商家独立金库，双方签名确认消费后向商家结算"
+        >
+          <div class="vault-top"><span>SMART CONTRACT VAULT</span><span>USDC</span></div>
+          <svg class="vault-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <rect
+              x="9"
+              y="7"
+              width="46"
+              height="49"
+              rx="9"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
+            <rect
+              x="15"
+              y="13"
+              width="34"
+              height="35"
+              rx="5"
+              stroke="currentColor"
+              stroke-opacity=".3"
+            />
+            <circle cx="32" cy="30" r="9" stroke="currentColor" stroke-width="1.6" />
+            <path
+              d="M32 16v6m0 16v6M18 30h6m16 0h6m-24-10 5 5m10 10 5 5m0-20-5 5M27 35l-5 5"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path
+              d="M18 56v3m28-3v3"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <p class="vault-title">资金随消费释放</p>
+          <p class="vault-sub">未结算本金留在金库 · 按购买条款退出</p>
+          <div class="vault-bottom">
+            <div>消费者<small>预付款进入金库</small></div>
+            <span class="arrow" aria-hidden="true">⇄</span>
+            <div>商家<small>双签确认后结算</small></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="thesis">
+        <strong>稳定币走向日常</strong>
+        <p>
+          传统预付消费需要信任商家保管资金。安心充用<b>稳定币 + 智能合约</b
+          >执行托管、结算和退出规则，让日常会员消费成为稳定币走向大众的一个切入点。
+        </p>
+      </aside>
+
+      <section class="section" aria-labelledby="flow-title">
+        <div class="section-heading">
+          <h2 id="flow-title"><span class="number">01</span>一张会员卡，四步完成闭环</h2>
+          <p>购买条款固定 · 历史记录可查</p>
+        </div>
+        <div class="steps">
+          <article class="step">
+            <div class="step-label">CREATE</div>
+            <h3>发布计划</h3>
+            <p>商家创建独立金库，发布储值优惠或次数套餐。</p>
+          </article>
+          <article class="step">
+            <div class="step-label">DEPOSIT</div>
+            <h3>购卡托管</h3>
+            <p>USDC 直接进入金库，每笔购买独立记账。</p>
+          </article>
+          <article class="step">
+            <div class="step-label">SETTLE</div>
+            <h3>双签消费</h3>
+            <p>扫码核对账单，双方签名后扣款并自动分佣。</p>
+          </article>
+          <article class="step">
+            <div class="step-label">EXIT</div>
+            <h3>按约退出</h3>
+            <p>消费者单方发起，补回已享优惠后退还余款。</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="lower">
+        <section class="section" aria-labelledby="example-title">
+          <div class="section-heading">
+            <h2 id="example-title"><span class="number">02</span>用一笔账，讲清楚规则</h2>
+          </div>
+          <div class="example">
+            <div class="example-head">
+              <strong>充值 500，享九折</strong><span>规则示例 · USDC</span>
+            </div>
+            <div class="tabs" role="group" aria-label="切换规则演示阶段">
+              <button type="button" data-stage="buy" aria-pressed="false">① 购卡</button
+              ><button type="button" data-stage="consume" aria-pressed="true">② 消费</button
+              ><button type="button" data-stage="exit" aria-pressed="false">③ 退出</button>
+            </div>
+            <div id="example-state" aria-live="polite" aria-atomic="true">
+              <div class="metrics">
+                <div class="metric">
+                  <small>金库剩余本金</small><strong id="principal">320</strong>
+                </div>
+                <div class="metric">
+                  <small>累计释放金额</small><strong id="released">180</strong>
+                </div>
+                <div class="metric">
+                  <small id="refund-label">此时退出可退</small><strong id="refund">300</strong>
+                </div>
+              </div>
+              <div class="balance-bar" aria-hidden="true">
+                <span class="released" id="released-bar" style="width: 36%"></span
+                ><span class="refunded" id="refunded-bar" style="width: 0%"></span>
+              </div>
+              <p class="example-note" id="example-note">
+                消费原价 200，九折扣除 <b>180</b>。剩余本金 320；退出补回优惠 20，可退 <b>300</b>。
+              </p>
+            </div>
+            <p class="print-note">
+              规则：退出补差以剩余本金为上限，无需额外补款。释放金额包含商家收入及约定分佣。
+            </p>
+          </div>
+        </section>
+        <section class="section" aria-labelledby="future-title">
+          <div class="section-heading">
+            <h2 id="future-title"><span class="number">03</span>从预付协议，到消费网络</h2>
+          </div>
+          <div class="future">
+            <div class="future-head">
+              <strong>让链上客商关系产生新价值</strong><span>未来展望</span>
+            </div>
+            <div class="relationship" aria-label="未来场景：新咖啡店向竞品咖啡店的会员发放消费券">
+              <div class="node">新咖啡店<small>发放首次到店消费券</small></div>
+              <div class="connection" aria-hidden="true">→</div>
+              <div class="node">竞品店的会员<small>凭链上会员记录领取</small></div>
+            </div>
+            <p>
+              随着商户与消费者加入，会员关系、消费频次与结算记录持续沉淀。商家可基于这些记录<b>向竞品会员空投消费券</b>，触达有同类消费需求的人群。
+            </p>
+            <div class="future-bottom">
+              更多延展：跨商家权益 · 联合营销 · 经营分析<br />消费券、定向空投及跨商家权益为后续规划。
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="implementation" aria-label="当前实现与项目边界">
+        <div class="implementation-title">已实现的基础</div>
+        <div>
+          <p class="status">
+            <span class="status-dot" aria-hidden="true"></span>独立金库 / 购卡 / 双签消费 / 退款退卡
+            / 渠道与邀请分佣；已完成本地合约与双浏览器验证。
+          </p>
+          <p class="status">
+            <span class="status-dot pending" aria-hidden="true"></span>注册合约与工厂已部署至 Monad
+            测试网；源码验证及测试网完整业务验收待完成。演示使用测试 USDC。
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && window.parent !== window) {
+          window.parent.postMessage({ type: 'anxinchong:close-one-pager' }, '*');
+        }
+      });
+      const stages = {
+        buy: {
+          principal: 500,
+          released: 0,
+          refund: 500,
+          label: '此时退出可退',
+          settledWidth: 0,
+          refundedWidth: 0,
+          note: '500 USDC 全部进入金库，尚未消费，商家与渠道尚未分账。此时退出可退 <b>500</b>。',
+        },
+        consume: {
+          principal: 320,
+          released: 180,
+          refund: 300,
+          label: '此时退出可退',
+          settledWidth: 36,
+          refundedWidth: 0,
+          note: '消费原价 200，九折扣除 <b>180</b>。剩余本金 320；退出补回优惠 20，可退 <b>300</b>。',
+        },
+        exit: {
+          principal: 0,
+          released: 200,
+          refund: 300,
+          label: '已退回消费者',
+          settledWidth: 40,
+          refundedWidth: 60,
+          note: '无需商家审批。剩余 320 中补差 <b>20</b>，退回 <b>300</b>，会员卡关闭。累计释放 200，含约定分佣。',
+        },
+      };
+      document.querySelectorAll('[data-stage]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const stage = stages[button.dataset.stage];
+          document
+            .querySelectorAll('[data-stage]')
+            .forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+          ['principal', 'released', 'refund'].forEach((key) => {
+            document.getElementById(key).textContent = stage[key];
+          });
+          document.getElementById('refund-label').textContent = stage.label;
+          document.getElementById('example-note').innerHTML = stage.note;
+          document.getElementById('released-bar').style.width = stage.settledWidth + '%';
+          document.getElementById('refunded-bar').style.width = stage.refundedWidth + '%';
+        });
+      });
+    </script>
+  </body>
+</html>
