@@ -1,0 +1,27 @@
+name: checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.25.0
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.5
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: node scripts/foundry.mjs fmt --check
+      - run: pnpm abi:check
+      - run: pnpm test
+      - run: pnpm test:contracts
+        env:
+          FOUNDRY_PROFILE: ci
+      - run: pnpm build

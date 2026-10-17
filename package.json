@@ -1,0 +1,32 @@
+{
+  "name": "anxinchong",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=24.19.0"
+  },
+  "scripts": {
+    "dev": "node scripts/sync-config.mjs && pnpm --filter @anxinchong/web dev",
+    "build": "node scripts/sync-config.mjs && pnpm --filter @anxinchong/web build",
+    "preview": "pnpm --filter @anxinchong/web preview",
+    "typecheck": "pnpm --filter @anxinchong/web typecheck",
+    "test": "node --test tests/*.test.mjs",
+    "test:contracts": "node scripts/foundry.mjs test",
+    "test:e2e": "node scripts/browser-smoke.mjs",
+    "test:startup": "node scripts/browser-startup.mjs",
+    "format": "prettier --write web/src packages/protocol scripts tests .github package.json web/package.json web/tsconfig.json web/vite.config.ts web/index.html .prettierrc.json",
+    "format:check": "prettier --check web/src packages/protocol scripts tests .github package.json web/package.json web/tsconfig.json web/vite.config.ts web/index.html .prettierrc.json",
+    "compile": "node scripts/compile.mjs",
+    "abi:check": "node scripts/compile.mjs --check",
+    "deployment:check": "node scripts/check-deployment.mjs",
+    "local:deploy": "node scripts/local-deploy.mjs"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.6.1",
+    "playwright": "1.62.1",
+    "prettier": "3.9.10",
+    "solc": "0.8.37",
+    "viem": "2.57.7"
+  }
+}

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#123e36" />
+    <meta name="description" content="安心充，部署于 Monad 测试网的预付消费与会员优惠协议。" />
+    <link rel="icon" href="./favicon.svg" />
+    <title>安心充 · 预付有约 消费安心</title>
+    <style>
+      .startup-panel {
+        box-sizing: border-box;
+        max-width: 620px;
+        margin: 12vh auto;
+        padding: 32px;
+        color: #123e36;
+        background: #f6f8f3;
+        border: 1px solid #dce5dd;
+        border-radius: 20px;
+        font:
+          16px/1.8 system-ui,
+          sans-serif;
+      }
+      .startup-panel h1 {
+        font-size: 26px;
+      }
+      .startup-panel code {
+        display: block;
+        padding: 12px;
+        background: #e8eee7;
+      }
+      .startup-panel a {
+        color: #123e36;
+      }
+      .startup-panel button {
+        padding: 10px 18px;
+        cursor: pointer;
+      }
+      .startup-panel [hidden] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <main class="startup-panel" aria-live="polite">
+        <h1 id="startup-heading">安心充正在启动</h1>
+        <p id="startup-message">正在加载页面和部署配置，请稍候。</p>
+        <div id="startup-local" hidden>
+          <p>在项目目录 anxinchong 中打开终端，执行：</p>
+          <code>./start.command</code>
+          <p>服务启动后，<a href="http://127.0.0.1:5173/">打开本地预览</a>。</p>
+        </div>
+        <button id="startup-retry" type="button" hidden>重新加载</button>
+        <noscript>请启用 JavaScript 后重新加载页面。</noscript>
+      </main>
+    </div>
+    <script>
+      if (window.location.protocol === 'file:') {
+        document.getElementById('startup-heading').textContent = '请通过本地预览打开安心充';
+        document.getElementById('startup-message').textContent =
+          '直接双击 index.html 无法运行应用，浏览器会限制本地文件的模块和配置加载。';
+        document.getElementById('startup-local').hidden = false;
+      }
+      window.addEventListener(
+        'error',
+        function (event) {
+          if (window.location.protocol !== 'file:' && event.target instanceof HTMLScriptElement) {
+            document.getElementById('startup-heading').textContent = '安心充启动失败';
+            document.getElementById('startup-message').textContent =
+              '页面脚本加载失败，请检查本地服务或刷新页面重试。';
+            var retry = document.getElementById('startup-retry');
+            retry.hidden = false;
+            retry.onclick = function () {
+              window.location.reload();
+            };
+          }
+        },
+        true,
+      );
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

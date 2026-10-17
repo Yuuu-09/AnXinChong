@@ -1,0 +1,13 @@
+{
+  "name": "@anxinchong/protocol",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./math": "./math.mjs",
+    "./bill": "./bill.mjs"
+  },
+  "dependencies": {
+    "viem": "2.57.7"
+  }
+}

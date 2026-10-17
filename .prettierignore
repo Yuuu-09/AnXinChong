@@ -1,0 +1,11 @@
+node_modules
+.tools
+.cache
+contracts/out
+contracts/cache
+web/dist
+web/src/generated
+web/public/deployments
+pnpm-lock.yaml
+docs
+evidence

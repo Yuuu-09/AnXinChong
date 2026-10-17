@@ -1,0 +1,22 @@
+node_modules/
+.cache/
+.tools/
+dist/
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+.env
+.env.*
+!.env.example
+!.env.deploy.example
+playwright-report/
+test-results/
+.DS_Store
+*.tsbuildinfo
+web/public/deployments/
+deployments/local.json
+deployments/local-demo.json
+
+# Local project documents and generated verification evidence
+/docs/
+/evidence/
