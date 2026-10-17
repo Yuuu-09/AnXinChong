@@ -9,6 +9,10 @@ import {
   encodeFunctionData,
   hashTypedData,
   http,
+  decodeAbiParameters,
+  decodeFunctionData,
+  deploylessCallViaBytecodeBytecode,
+  multicall3Abi,
 } from 'viem';
 import {
   BILL_TYPES,
@@ -62,6 +66,20 @@ const browser = await chromium.launch({
 });
 const errors = [];
 const reports = [];
+function innerCalls(payload) {
+  if (payload.method !== 'eth_call') return [];
+  let data = payload.params?.[0]?.data ?? '0x';
+  if (data.startsWith(deploylessCallViaBytecodeBytecode)) {
+    [, data] = decodeAbiParameters(
+      [{ type: 'bytes' }, { type: 'bytes' }],
+      `0x${data.slice(deploylessCallViaBytecodeBytecode.length)}`,
+    );
+  }
+  if (data.startsWith('0x82ad56cb')) {
+    return decodeFunctionData({ abi: multicall3Abi, data }).args[0].map((call) => call.callData);
+  }
+  return [data];
+}
 async function until(action, predicate, description) {
   const timeout = Date.now() + 30000;
   while (Date.now() < timeout) {
@@ -649,11 +667,11 @@ try {
     const rpcPattern = `${new URL(d.rpcUrl).origin}/**`;
     const delayMembership = async (route) => {
       const payload = route.request().postDataJSON();
-      const data = payload.method === 'eth_call' ? payload.params?.[0]?.data : '';
-      if (data?.startsWith(previewSelector)) previewRequestsAfterExit++;
+      const calls = innerCalls(payload);
+      if (calls.some((data) => data.startsWith(previewSelector))) previewRequestsAfterExit++;
       const response = await route.fetch();
       // Reproduce the race: account refresh takes longer than the old parallel preview.
-      if (data?.startsWith(memberSelector))
+      if (calls.some((data) => data.startsWith(memberSelector)))
         await new Promise((resolve) => setTimeout(resolve, 400));
       await route.fulfill({ response });
     };
@@ -1024,6 +1042,52 @@ try {
     totalEscrowed: expectedTotal.toString(),
     result: 'pass',
   });
+  if (process.env.READ_BENCHMARK_BASELINE) {
+    const benchmark = [];
+    for (const [name, url] of [
+      ['before', process.env.READ_BENCHMARK_BASELINE],
+      ['after', base],
+    ]) {
+      const c = await browser.newContext();
+      let ethCalls = 0;
+      await c.route(`${new URL(d.rpcUrl).origin}/**`, async (route) => {
+        if (route.request().postDataJSON()?.method === 'eth_call') ethCalls++;
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        await route.continue();
+      });
+      const started = Date.now();
+      const p = await c.newPage();
+      await p.goto(url);
+      const stat = p.locator('.stat').filter({ hasText: '全部商家托管余额' }).locator('.amount');
+      await until(
+        () => stat.innerText(),
+        (text) =>
+          text.replace(d.assetSymbol, '').trim() === (Number(expectedTotal) / 1e6).toString(),
+        `${name} read benchmark`,
+      );
+      benchmark.push({ name, ethCalls, elapsedMs: Date.now() - started });
+      await c.close();
+    }
+    assert.ok(benchmark[1].ethCalls < benchmark[0].ethCalls / 2, JSON.stringify(benchmark));
+    await fs.mkdir(path.join(root, 'evidence/performance'), { recursive: true });
+    await fs.writeFile(
+      path.join(root, 'evidence/performance/frontend-read-benchmark.json'),
+      JSON.stringify(
+        {
+          environment:
+            '21 merchants; fresh browser; local RPC with 150 ms artificial network delay per HTTP request; not public-network timing',
+          benchmark,
+        },
+        null,
+        2,
+      ),
+    );
+    reports.push({
+      scenario: 'batched-cold-market-reads-vs-previous-build',
+      benchmark,
+      result: 'pass',
+    });
+  }
   await restored.setViewportSize({ width: 390, height: 844 });
   await restored.goto(base + '#/');
   await restored.getByRole('heading', { name: '预付有约，消费安心', exact: true }).waitFor();

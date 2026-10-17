@@ -38,6 +38,7 @@ import {
   readFactory,
   allMerchants,
   totalMerchantEscrow,
+  mapConcurrent,
   consumerCards,
   shortAddress,
   type Merchant,
@@ -56,6 +57,7 @@ function useMembershipExit(vault: Address, id: bigint) {
   return useQuery({
     queryKey: [...queryScope, vault, 'membership-exit-state', id],
     enabled: configured,
+    staleTime: 0,
     queryFn: async () => {
       let membership = await readVault<Membership>(vault, 'getMembership', [id]);
       let quote: ExitQuote | undefined;
@@ -830,16 +832,13 @@ export function CommissionPage() {
     queryKey: [...queryScope, 'recipient-stats', address],
     enabled: configured && !!address,
     queryFn: async () => {
-      let channel = 0n,
-        referral = 0n;
-      for (const { shop } of await allMerchants()) {
-        const [a, b] = await readVault<readonly [bigint, bigint]>(shop.vault, 'getRecipientStats', [
-          address,
-        ]);
-        channel += a;
-        referral += b;
-      }
-      return [channel, referral] as const;
+      const amounts = await mapConcurrent(await allMerchants(), ({ shop }) =>
+        readVault<readonly [bigint, bigint]>(shop.vault, 'getRecipientStats', [address]),
+      );
+      return amounts.reduce<readonly [bigint, bigint]>(
+        ([channel, referral], [a, b]) => [channel + a, referral + b],
+        [0n, 0n],
+      );
     },
   });
   return (

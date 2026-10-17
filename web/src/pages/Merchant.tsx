@@ -347,7 +347,7 @@ export function MerchantConsole() {
   const members = useQuery({
     queryKey: [...queryScope, vault, 'console-members', merchantId, memberPage],
     enabled: configured && merchantId > 0n && !!vault,
-    refetchInterval: 5000,
+    refetchInterval: 15_000,
     queryFn: async () => {
       const [ids] = await readVault<readonly [readonly bigint[], bigint]>(
         vault!,
@@ -799,7 +799,7 @@ export function PayPage() {
   const validation = useQuery({
     queryKey: [...queryScope, vault, 'bill', encoded],
     enabled: !!envelope && !settled,
-    refetchInterval: 5000,
+    refetchInterval: 15_000,
     queryFn: async () => {
       const e = envelope!;
       await registeredVault(vault!);

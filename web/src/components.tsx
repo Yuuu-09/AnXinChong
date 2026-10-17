@@ -6,12 +6,13 @@ import { formatAmount } from '@anxinchong/protocol/math';
 import {
   configured,
   manifest,
-  publicClient,
+  historyClient,
   queryScope,
   readVault,
   readFactory,
   allMerchants,
   registeredVault,
+  mapConcurrent,
 } from './lib/runtime';
 import { scanHistory } from './lib/event-cache';
 import { errorText, type useTransactions } from './lib/transactions';
@@ -42,6 +43,7 @@ export function useRead<T>(
     queryKey: [...queryScope, vault, name, args],
     queryFn: () => readVault<T>(vault!, name, args),
     enabled: configured && enabled && !!vault,
+    staleTime: name === 'getPlanVersion' ? 30_000 : 5000,
   });
 }
 export function Amount({ value, symbol = true }: { value: bigint | undefined; symbol?: boolean }) {
@@ -237,24 +239,29 @@ export function History({
   const query = useQuery({
     queryKey: [...queryScope, vault, 'history', field, value],
     enabled: configured && value !== undefined,
+    staleTime: 60_000,
     queryFn: async ({ signal }) => {
       const shops = vault ? [{ shop: await registeredVault(vault) }] : await allMerchants();
-      const logs = [];
-      for (const { shop } of shops) {
-        const batch = await scanHistory(
-          publicClient,
-          {
-            chainId: manifest.chainId,
-            factory: manifest.factory!,
-            address: shop.vault,
-            deploymentBlock: shop.deploymentBlock,
-            field,
-            value,
-          },
-          signal,
-        );
-        logs.push(...batch.map((log) => ({ ...log, vault: shop.vault })));
-      }
+      const batches = await mapConcurrent(
+        shops,
+        async ({ shop }) => {
+          const batch = await scanHistory(
+            historyClient,
+            {
+              chainId: manifest.chainId,
+              factory: manifest.factory!,
+              address: shop.vault,
+              deploymentBlock: shop.deploymentBlock,
+              field,
+              value,
+            },
+            signal,
+          );
+          return batch.map((log) => ({ ...log, vault: shop.vault }));
+        },
+        2,
+      );
+      const logs = batches.flat();
       return logs.sort((a, b) =>
         a.blockNumber < b.blockNumber
           ? -1

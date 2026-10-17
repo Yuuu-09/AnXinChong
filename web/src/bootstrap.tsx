@@ -10,7 +10,8 @@ import './styles.css';
 const client = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5000,
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
       retry: 1,
       queryKeyHashFn: (key) =>
         JSON.stringify(key, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),

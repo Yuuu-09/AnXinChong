@@ -11,6 +11,7 @@ export type HistoryLog = {
 };
 type Checkpoint = { scanned: bigint; logs: HistoryLog[] };
 type LogClient = {
+  maxLogRange?: bigint;
   getBlockNumber: () => Promise<bigint>;
   getLogs: (args: {
     address: Address;
@@ -60,23 +61,34 @@ export async function scanHistory(
       a.type === 'event' && names.includes(a.name),
   );
   let from = start,
-    size = 1000n,
+    size = client.maxLogRange ?? 1000n,
     retries = 0;
   while (from <= tip) {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-    const to = from + size - 1n < tip ? from + size - 1n : tip;
     try {
+      // Fetch adjacent ranges together, but advance the checkpoint only after
+      // every range succeeds. A failed or cancelled batch never leaves a hole.
+      const ranges: { fromBlock: bigint; toBlock: bigint }[] = [];
+      for (let cursor = from; cursor <= tip && ranges.length < 2; cursor += size) {
+        ranges.push({
+          fromBlock: cursor,
+          toBlock: cursor + size - 1n < tip ? cursor + size - 1n : tip,
+        });
+      }
       const batches = await Promise.all(
-        events.map((event) =>
-          client.getLogs({
-            address: scope.address,
-            event,
-            args: { [scope.field]: scope.value },
-            fromBlock: from,
-            toBlock: to,
-          }),
+        ranges.flatMap((range) =>
+          events.map((event) =>
+            client.getLogs({
+              address: scope.address,
+              event,
+              args: { [scope.field]: scope.value },
+              ...range,
+            }),
+          ),
         ),
       );
+      if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+      const to = ranges[ranges.length - 1].toBlock;
       const added = batches.flat().filter((l): l is HistoryLog => {
         const log = l as Partial<HistoryLog>;
         return log.blockNumber != null && log.transactionHash != null && log.logIndex != null;
@@ -95,7 +107,8 @@ export async function scanHistory(
       if (signal?.aborted) throw e;
       if (++retries > 5)
         throw new Error('历史记录未加载完整，请重试。' + (e instanceof Error ? e.message : ''));
-      size = size > 1n ? size / 2n : 1n;
+      if (/range|413|-32614|too many results|limit.*block/i.test(String(e)))
+        size = size > 1n ? size / 2n : 1n;
       await delay(Math.min(250 * 2 ** retries, 4000));
     }
   }

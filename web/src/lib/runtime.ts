@@ -9,6 +9,8 @@ import {
 import { createConfig } from 'wagmi';
 import { injected } from 'wagmi/connectors';
 import { factoryAbi, registryAbi, vaultAbi } from '../generated/abi';
+import { ReadCache, mapConcurrent } from './read-cache';
+export { mapConcurrent } from './read-cache';
 
 export type Deployment = {
   schemaVersion: 3;
@@ -68,8 +70,13 @@ export const chain = defineChain({
 });
 export const publicClient = createPublicClient({
   chain,
+  batch: { multicall: { deployless: true, wait: 10, batchSize: 4096 } },
   transport: http(manifest.rpcUrl, { retryCount: 2 }),
 });
+export const historyClient = Object.assign(
+  createPublicClient({ chain, transport: http(manifest.rpcUrl, { retryCount: 0 }) }),
+  { maxLogRange: new URL(manifest.rpcUrl).hostname === 'testnet-rpc.monad.xyz' ? 100n : 1000n },
+);
 export const walletConfig = createConfig({
   chains: [chain],
   connectors: [injected()],
@@ -95,22 +102,50 @@ export type Preview = ContractFunctionReturnType<typeof vaultAbi, 'view', 'previ
 export type MerchantStats = ContractFunctionReturnType<typeof vaultAbi, 'view', 'getMerchantStats'>;
 export const shortAddress = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
 export const queryScope = [manifest.chainId, manifest.factory] as const;
+const metadata = new ReadCache();
+const vaultIds = new Map<string, bigint>();
+const keyOf = (parts: readonly unknown[]) =>
+  JSON.stringify(parts, (_, value) => (typeof value === 'bigint' ? value.toString() : value));
+export function clearReadCaches() {
+  // Positive vault registration is immutable for this factory/chain. Keep that
+  // proof, but clear mutable profiles, plan sale state, and the merchant directory.
+  metadata.clear();
+}
 export async function readFactory<T>(
   functionName: string,
   args: readonly unknown[] = [],
 ): Promise<T> {
   if (!configured || !manifest.factory)
     throw new Error('工厂合约尚未部署，请先完成本地或测试网部署');
-  return (await publicClient.readContract({
-    address: manifest.factory,
-    abi: factoryAbi as import('viem').Abi,
-    functionName,
-    args,
-  })) as T;
+  return metadata.read(
+    keyOf(['factory', functionName, args]),
+    async () => {
+      const result = await publicClient.readContract({
+        address: manifest.factory!,
+        abi: factoryAbi as import('viem').Abi,
+        functionName,
+        args,
+      });
+      if (functionName === 'getMerchant') {
+        const shop = result as Merchant;
+        vaultIds.set(shop.vault.toLowerCase(), args[0] as bigint);
+      }
+      return result as T;
+    },
+    functionName === 'getMerchant' ? 30_000 : 0,
+  );
+}
+async function registeredVaultId(vault: Address): Promise<bigint> {
+  const key = vault.toLowerCase();
+  const known = vaultIds.get(key);
+  if (known) return known;
+  const id = await readFactory<bigint>('merchantIdOfVault', [key]);
+  if (id === 0n) throw new Error('该金库不属于当前工厂，无法操作');
+  vaultIds.set(key, id);
+  return id;
 }
 export async function registeredVault(vault: Address): Promise<Merchant> {
-  const id = await readFactory<bigint>('merchantIdOfVault', [vault]);
-  if (id === 0n) throw new Error('该金库不属于当前工厂，无法操作');
+  const id = await registeredVaultId(vault);
   return readFactory<Merchant>('getMerchant', [id]);
 }
 export async function readVault<T>(
@@ -118,28 +153,43 @@ export async function readVault<T>(
   functionName: string,
   args: readonly unknown[] = [],
 ): Promise<T> {
-  await registeredVault(vault);
-  return (await publicClient.readContract({
-    address: vault,
-    abi: vaultAbi as import('viem').Abi,
-    functionName,
-    args,
-  })) as T;
+  await registeredVaultId(vault);
+  return metadata.read(
+    keyOf([vault.toLowerCase(), functionName, args]),
+    async () =>
+      (await publicClient.readContract({
+        address: vault,
+        abi: vaultAbi as import('viem').Abi,
+        functionName,
+        args,
+      })) as T,
+    functionName === 'getPlanVersion' ? 30_000 : 0,
+  );
 }
 export async function allMerchants(): Promise<readonly { id: bigint; shop: Merchant }[]> {
-  const count = await readFactory<bigint>('merchantCount');
-  const shops = [];
-  for (let cursor = 0n; cursor < count;) {
-    const [ids, next] = await readFactory<readonly [readonly bigint[], bigint]>('listMerchants', [
-      cursor,
-      100n,
-    ]);
-    if (next <= cursor) throw new Error('工厂分页没有前进，请刷新重试');
-    for (const id of ids)
-      shops.push({ id, shop: await readFactory<Merchant>('getMerchant', [id]) });
-    cursor = next;
-  }
-  return shops;
+  return metadata.read(
+    'all-merchants',
+    async () => {
+      const count = await readFactory<bigint>('merchantCount');
+      const shops: { id: bigint; shop: Merchant }[] = [];
+      for (let cursor = 0n; cursor < count;) {
+        const [ids, next] = await readFactory<readonly [readonly bigint[], bigint]>(
+          'listMerchants',
+          [cursor, 100n],
+        );
+        if (next <= cursor) throw new Error('工厂分页没有前进，请刷新重试');
+        shops.push(
+          ...(await mapConcurrent(ids, async (id) => ({
+            id,
+            shop: await readFactory<Merchant>('getMerchant', [id]),
+          }))),
+        );
+        cursor = next;
+      }
+      return shops;
+    },
+    15_000,
+  );
 }
 export async function totalMerchantEscrow(): Promise<bigint> {
   const shops = await allMerchants();
@@ -161,22 +211,29 @@ export async function totalMerchantEscrow(): Promise<bigint> {
   return total;
 }
 export async function consumerCards(consumer: Address) {
-  const accounts: { id: bigint; vault: Address }[] = [];
-  for (const { shop } of await allMerchants()) {
-    let cursor = 0n;
-    do {
-      const [ids, next] = await readVault<readonly [readonly bigint[], bigint]>(
-        shop.vault,
-        'listConsumerMemberships',
-        [consumer, cursor, 100n],
-      );
-      for (const id of ids) accounts.push({ id, vault: shop.vault });
-      if (ids.length < 100) break;
-      if (next <= cursor) throw new Error('会员账户分页没有前进，请刷新重试');
-      cursor = next;
-    } while (true);
-  }
-  return accounts;
+  return metadata.read(
+    keyOf(['consumer-cards', consumer.toLowerCase()]),
+    async () => {
+      const byShop = await mapConcurrent(await allMerchants(), async ({ shop }) => {
+        const accounts: { id: bigint; vault: Address }[] = [];
+        let cursor = 0n;
+        do {
+          const [ids, next] = await readVault<readonly [readonly bigint[], bigint]>(
+            shop.vault,
+            'listConsumerMemberships',
+            [consumer, cursor, 100n],
+          );
+          for (const id of ids) accounts.push({ id, vault: shop.vault });
+          if (ids.length < 100) break;
+          if (next <= cursor) throw new Error('会员账户分页没有前进，请刷新重试');
+          cursor = next;
+        } while (true);
+        return accounts;
+      });
+      return byShop.flat();
+    },
+    5_000,
+  );
 }
 export function parseId(value: string | undefined): bigint {
   if (!value || !/^[1-9]\d*$/.test(value) || value.length > 78 || BigInt(value) >= 2n ** 256n)

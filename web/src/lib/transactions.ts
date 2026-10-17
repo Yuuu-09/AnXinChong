@@ -4,7 +4,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { BaseError, erc20Abi, type Abi, type Address, type Hex } from 'viem';
 import { BILL_TYPES, billDomain, type Bill } from '@anxinchong/protocol/bill';
 import { factoryAbi, registryAbi, vaultAbi } from '../generated/abi';
-import { chain, configured, manifest, publicClient, registeredVault } from './runtime';
+import {
+  chain,
+  clearReadCaches,
+  configured,
+  manifest,
+  publicClient,
+  registeredVault,
+} from './runtime';
 
 export const errorText = (error: unknown) =>
   error instanceof BaseError
@@ -91,7 +98,24 @@ export function useTransactions(vault?: Address) {
     });
     if (receipt.status !== 'success') throw new Error('交易在链上执行失败，资金与权益未结算');
     setPhase('交易已确认');
-    await cache.invalidateQueries();
+    if (!token) {
+      clearReadCaches();
+      const affected = (query: { queryKey: readonly unknown[] }) =>
+        query.queryKey[0] === chain.id &&
+        query.queryKey[1] === (profileAction ? manifest.userRegistry : manifest.factory);
+      // The receipt is authoritative. Refresh current business state, while long
+      // history scans run separately and cannot hold the transaction UI open.
+      await cache.invalidateQueries({
+        predicate: (query) => affected(query) && !query.queryKey.includes('history'),
+      });
+      void cache
+        .invalidateQueries({
+          predicate: (query) => affected(query) && query.queryKey.includes('history'),
+        })
+        .catch(() => {
+          /* shown by the history query */
+        });
+    }
     return receipt;
   }
   async function sign(bill: Bill) {
