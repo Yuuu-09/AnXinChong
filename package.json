@@ -7,8 +7,8 @@
     "node": ">=24.19.0"
   },
   "scripts": {
-    "dev": "node scripts/sync-config.mjs && pnpm --filter @anxinchong/web dev",
-    "build": "node scripts/sync-config.mjs && pnpm --filter @anxinchong/web build",
+    "dev": "pnpm --filter @anxinchong/web dev",
+    "build": "pnpm --filter @anxinchong/web build",
     "preview": "pnpm --filter @anxinchong/web preview",
     "typecheck": "pnpm --filter @anxinchong/web typecheck",
     "test": "node --test tests/*.test.mjs",

@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { readFile } from 'node:fs/promises';
+import { syncDeploymentConfig } from '../scripts/sync-config.mjs';
 export default defineConfig({
   base: './',
   plugins: [
+    {
+      name: 'deployment-manifest',
+      async configResolved(config) {
+        await syncDeploymentConfig(config.env.VITE_DEPLOYMENT ?? 'monad-testnet.json');
+      },
+    },
     react(),
     {
       name: 'local-wallet-deployment',

@@ -25,3 +25,12 @@ jobs:
         env:
           FOUNDRY_PROFILE: ci
       - run: pnpm build
+      - name: Check published deployment manifest
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const source = JSON.parse(readFileSync('deployments/monad-testnet.json', 'utf8'));
+          const published = JSON.parse(readFileSync('web/dist/deployments/monad-testnet.json', 'utf8'));
+          assert.deepEqual(published, source);
+          JS

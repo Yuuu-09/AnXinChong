@@ -105,6 +105,14 @@ pnpm preview
 
 构建产物位于 `web/dist/`；前端使用 Hash 路由，可部署到静态托管服务。
 
+### 部署到 Vercel
+
+导入本仓库，推荐 Root Directory 保持仓库根目录，Framework Preset 选择 Vite。仓库中的 `vercel.json` 已指定安装命令 `pnpm install --frozen-lockfile`、构建命令 `pnpm build` 和输出目录 `web/dist`。
+
+若现有 Vercel 项目的 Root Directory 已选为 `web`，保留该设置即可，`web/vercel.json` 将输出目录设为 `dist`。Vite 会在构建前自动复制测试网部署配置，直接从 `web` 构建也不需要手动准备文件。默认无需设置环境变量；生产部署不要将 `VITE_DEPLOYMENT` 设为仅供本地开发的 `local.json`。
+
+部署后 `/deployments/monad-testnet.json` 应返回 JSON，而不是 404。这个文件包含公开的测试网合约地址，必须与前端一起发布；`docs/` 和本地验收证据仍不上传。
+
 ## 开发检查
 
 ```sh
